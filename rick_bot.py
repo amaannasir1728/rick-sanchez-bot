@@ -26,7 +26,7 @@ def init_groq_client():
         )
         st.stop()
     
-    return Groq(api_key=api_key
+    return Groq(api_key=api_key)
 
 
 # ── Load models & data ───────────────────────────────
