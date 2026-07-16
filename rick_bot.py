@@ -13,19 +13,7 @@ RICK_SYSTEM_PROMPT = """You are Rick Sanchez from Rick and Morty. You are a geni
 @st.cache_resource
 def init_groq_client():
     """Initialize Groq client with proper error handling"""
-    api_key = st.secrets.get("GROQ_API_KEY") if hasattr(st, "secrets") else None
-    
-    if not api_key:
-        api_key = os.getenv("GROQ_API_KEY")
-    
-    if not api_key:
-        st.error(
-            "🔑 **Missing GROQ_API_KEY**\n\n"
-            "**Local:** Add to `.streamlit/secrets.toml`\n"
-            "**Streamlit Cloud:** Add to Settings → Secrets"
-        )
-        st.stop()
-    
+    api_key = st.secrets.get("GROQ_API_KEY") 
     return api_key
 
 
