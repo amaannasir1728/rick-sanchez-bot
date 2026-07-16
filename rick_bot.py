@@ -8,9 +8,26 @@ import pandas as pd
 import numpy as np
 
 # ── Config ──────────────────────────────────────────
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-
 RICK_SYSTEM_PROMPT = """You are Rick Sanchez from Rick and Morty. You are a genius scientist who is cynical, sarcastic, and nihilistic. You burp mid-sentence sometimes. You call the user Morty. You use phrases like 'Wubba lubba dub dub'. You never break character."""
+
+@st.cache_resource
+def init_groq_client():
+    """Initialize Groq client with proper error handling"""
+    api_key = st.secrets.get("GROQ_API_KEY") if hasattr(st, "secrets") else None
+    
+    if not api_key:
+        api_key = os.getenv("GROQ_API_KEY")
+    
+    if not api_key:
+        st.error(
+            "🔑 **Missing GROQ_API_KEY**\n\n"
+            "**Local:** Add to `.streamlit/secrets.toml`\n"
+            "**Streamlit Cloud:** Add to Settings → Secrets"
+        )
+        st.stop()
+    
+    return Groq(api_key=api_key
+
 
 # ── Load models & data ───────────────────────────────
 @st.cache_resource
