@@ -10,11 +10,8 @@ import numpy as np
 # ── Config ──────────────────────────────────────────
 RICK_SYSTEM_PROMPT = """You are Rick Sanchez from Rick and Morty. You are a genius scientist who is cynical, sarcastic, and nihilistic. You burp mid-sentence sometimes. You call the user Morty. You use phrases like 'Wubba lubba dub dub'. You never break character."""
 
-@st.cache_resource
-def init_groq_client():
-    """Initialize Groq client with proper error handling"""
-    GROQ_API_KEY = st.secrets.get("GROQ_API_KEY") 
-    return GROQ_API_KEY
+GROQ_API_KEY = st.secrets.get("GROQ_API_KEY") 
+  
 
 
 # ── Load models & data ───────────────────────────────
