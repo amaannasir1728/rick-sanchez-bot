@@ -60,35 +60,64 @@ def load_rick_data():
     return rick_lines, rick_embeddings
 
 # ── RAG Functions ────────────────────────────────────
-def get_relevant_dialogues(query, rick_lines, rick_embeddings, top_k=3):
-    _, embedding_model = load_models()
-    query_embedding = embedding_model.encode([query])
-    similarities = cosine_similarity(query_embedding, rick_embeddings)[0]
-    top_indices = similarities.argsort()[-top_k:][::-1]
-    return [rick_lines[i] for i in top_indices]
+def get_relevant_dialogues(user_query, rick_lines, rick_embeddings, top_k=3):
+    """Retrieve most relevant Rick quotes using embeddings"""
+    from sentence_transformers import SentenceTransformer
+    
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    query_embedding = model.encode(user_query, convert_to_tensor=True)
+    
+    # Calculate cosine similarity
+    similarities = np.dot(rick_embeddings, query_embedding)
+    top_indices = np.argsort(similarities)[-top_k:][::-1]
+    
+    relevant_quotes = [rick_lines[i] for i in top_indices]
+    return relevant_quotes
 
-def rick_rag_chat(user_query, conversation_history, client, rick_lines, rick_embeddings):
-    # Retrieve relevant dialogues
-    relevant_dialogues = get_relevant_dialogues(user_query, rick_lines, rick_embeddings)
-    context = "\n".join(relevant_dialogues)
-
-    # Build messages — system + history + current query
-    messages = [
-        {
-            "role": "system",
-            "content": f"{RICK_SYSTEM_PROMPT}\n\nHere are some of your actual quotes:\n{context}"
-        }
-    ] + conversation_history + [
-        {"role": "user", "content": user_query}
-    ]
-
-    response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=messages,
-        max_tokens=200
-    )
-    return response.choices[0].message.content
-
+def rick_rag_chat(user_input, conversation_history, client, rick_lines, rick_embeddings):
+    """
+    Chat with Rick using RAG (Retrieval Augmented Generation)
+    
+    Args:
+        user_input: User's message
+        conversation_history: List of previous messages [{"role": "...", "content": "..."}]
+        client: Groq client instance
+        rick_lines: List of Rick's actual quotes
+        rick_embeddings: Embeddings of Rick's quotes
+    
+    Returns:
+        Rick's response or error message
+    """
+    try:
+        # Retrieve relevant quotes (RAG)
+        relevant_dialogues = get_relevant_dialogues(user_input, rick_lines, rick_embeddings)
+        context = "\n".join(relevant_dialogues)
+        
+        # Build messages with system prompt + context + history + current query
+        messages = [
+            {
+                "role": "system",
+                "content": f"{RICK_SYSTEM_PROMPT}\n\nHere are some of your actual quotes:\n{context}"
+            }
+        ] + conversation_history + [
+            {
+                "role": "user",
+                "content": user_input
+            }
+        ]
+        
+        # Call Groq API
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=messages,
+            max_tokens=200
+        )
+        
+        return response.choices[0].message.content
+    
+    except Exception as e:
+        st.error(f"❌ Groq API Error: {str(e)}")
+        return "Rick's unavailable right now... *burp* Try again later!"
 # ── Streamlit UI ─────────────────────────────────────
 st.set_page_config(page_title="Rick Sanchez Bot", page_icon="🧪")
 st.title("🧪 Rick Sanchez Bot")
