@@ -13,7 +13,7 @@ RICK_SYSTEM_PROMPT = """You are Rick Sanchez from Rick and Morty. You are a geni
 @st.cache_resource
 def init_groq_client():
     """Initialize Groq client with proper error handling"""
-    api_key = st.secrets.get("GROQ_API_KEY") if hasattr(st, "secrets") else None
+    GROQ_API_KEY = st.secrets.get("GROQ_API_KEY") if hasattr(st, "secrets") else None
     
     if not api_key:
         api_key = os.getenv("GROQ_API_KEY")
@@ -26,13 +26,13 @@ def init_groq_client():
         )
         st.stop()
     
-    return Groq(api_key=api_key)
+    return Groq(api_key=GROQ_API_KEY)
 
 
 # ── Load models & data ───────────────────────────────
 @st.cache_resource
 def load_models():
-    client = Groq(api_key=api_key)
+    client = Groq(api_key=GROQ_API_KEY)
     embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
     return client, embedding_model
 
