@@ -32,7 +32,7 @@ def init_groq_client():
 # ── Load models & data ───────────────────────────────
 @st.cache_resource
 def load_models():
-    client = Groq(api_key=GROQ_API_KEY)
+    client = Groq(api_key=api_key)
     embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
     return client, embedding_model
 
