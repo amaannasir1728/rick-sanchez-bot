@@ -1,4 +1,4 @@
-
+from pathlib import Path
 import os
 import streamlit as st
 from groq import Groq
@@ -21,10 +21,25 @@ def load_models():
 
 @st.cache_resource
 def load_rick_data():
-    df = pd.read_csv("/content/RickAndMortyScripts.csv")
+    # Get the directory where this script is located
+    base_dir = Path(__file__).parent
+    csv_path = base_dir / "RickAndMortyScripts.csv"
+    
+    # Fallback for Streamlit Cloud deployment
+    if not csv_path.exists():
+        csv_path = Path("RickAndMortyScripts.csv")
+    
+    if not csv_path.exists():
+        raise FileNotFoundError(
+            f"CSV file not found at {csv_path}. "
+            f"Make sure RickAndMortyScripts.csv is in the same directory as rick_bot.py"
+        )
+    
+    df = pd.read_csv(csv_path)
     rick_lines = df[df['name'] == 'Rick']['line'].tolist()
     embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
     rick_embeddings = embedding_model.encode(rick_lines, show_progress_bar=False)
+    
     return rick_lines, rick_embeddings
 
 # ── RAG Functions ────────────────────────────────────
